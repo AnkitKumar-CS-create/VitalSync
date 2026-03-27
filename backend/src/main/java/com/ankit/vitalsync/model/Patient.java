@@ -2,6 +2,7 @@ package com.ankit.vitalsync.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import java.time.LocalDateTime;
 
 @Entity
 @Data
@@ -12,5 +13,8 @@ public class Patient {
     private Long id;
     private String name;
     private int age;
+    private String bloodGroup;
     private double lastHeartRate;
+    private double lastOxygenLevel;
+    private LocalDateTime lastUpdate; // Time record karne ke liye
 }

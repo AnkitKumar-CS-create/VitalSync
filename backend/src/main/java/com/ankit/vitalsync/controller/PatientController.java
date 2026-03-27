@@ -1,60 +1,78 @@
 package com.ankit.vitalsync.controller;
 
 import com.ankit.vitalsync.model.Patient;
+import com.ankit.vitalsync.model.MedicalRecord;
 import com.ankit.vitalsync.repository.PatientRepository;
-import com.ankit.vitalsync.service.VitalsService;
+import com.ankit.vitalsync.repository.MedicalRecordRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/patients")
-@CrossOrigin(origins = "http://localhost:5173") // Professional restricted CORS
+@CrossOrigin(origins = "http://localhost:5173")
 public class PatientController {
 
-    private final PatientRepository patientRepository;
-    private final VitalsService vitalsService;
+    @Autowired
+    private PatientRepository repository;
 
-    // Constructor Injection (Professional Standard)
-    public PatientController(PatientRepository patientRepository, VitalsService vitalsService) {
-        this.patientRepository = patientRepository;
-        this.vitalsService = vitalsService;
-    }
+    @Autowired
+    private MedicalRecordRepository recordRepository;
 
-    // 1. Fetch All Patients: GET http://localhost:8080/api/patients
     @GetMapping
     public List<Patient> getAllPatients() {
-        return patientRepository.findAll();
+        return repository.findAll();
     }
 
-    // 2. Register New Patient: POST http://localhost:8080/api/patients
     @PostMapping
-    public Patient createPatient(@RequestBody Patient patient) {
-        // Automatically set timestamp if not provided
-        if (patient.getLastUpdate() == null) {
-            patient.setLastUpdate(java.time.LocalDateTime.now());
-        }
-        return patientRepository.save(patient);
+    public Patient addPatient(@RequestBody Patient patient) {
+        return repository.save(patient);
     }
 
-    // 3. Update Vitals: PUT http://localhost:8080/api/patients/{id}/vitals
-    @PutMapping("/{id}/vitals")
-    public Patient updatePatientVitals(
-            @PathVariable Long id,
-            @RequestParam double heartRate,
-            @RequestParam double oxygen) {
-        return vitalsService.updateVitals(id, heartRate, oxygen);
-    }
-
-    // 4. DELETE Patient Record: DELETE http://localhost:8080/api/patients/{id}
-    // Iski wajah se "Operation Failed" error aa raha tha
     @DeleteMapping("/{id}")
     public void deletePatient(@PathVariable Long id) {
-        if (patientRepository.existsById(id)) {
-            patientRepository.deleteById(id);
-            System.out.println(">>> Record Deleted for Patient ID: " + id);
-        } else {
-            throw new RuntimeException("Patient record not found with ID: " + id);
+        repository.deleteById(id);
+    }
+
+    // --- MEDICAL VAULT ENDPOINTS ---
+
+    @PostMapping("/{id}/upload")
+    public ResponseEntity<String> uploadRecord(@PathVariable Long id, @RequestParam("file") MultipartFile file) {
+        try {
+            Patient patient = repository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Patient not found"));
+
+            MedicalRecord record = new MedicalRecord();
+            record.setFileName(file.getOriginalFilename());
+            record.setFileType(file.getContentType());
+            record.setData(file.getBytes());
+            record.setPatient(patient);
+
+            recordRepository.save(record);
+            return ResponseEntity.ok("Upload Success");
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Error: " + e.getMessage());
         }
+    }
+
+    @GetMapping("/{id}/records")
+    public List<MedicalRecord> getPatientRecords(@PathVariable Long id) {
+        return recordRepository.findByPatientId(id);
+    }
+
+    @GetMapping("/record/{recordId}")
+    public ResponseEntity<byte[]> downloadRecord(@PathVariable Long recordId) {
+        MedicalRecord record = recordRepository.findById(recordId)
+                .orElseThrow(() -> new RuntimeException("Record not found"));
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(record.getFileType()))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + record.getFileName() + "\"")
+                .body(record.getData());
     }
 }

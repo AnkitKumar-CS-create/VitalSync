@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "jspdf": "^4.2.1",
+    "jspdf-autotable": "^5.0.7",
+    "react-router-dom": "^7.13.2",
+    "recharts": "^3.8.1"
+  }
+}

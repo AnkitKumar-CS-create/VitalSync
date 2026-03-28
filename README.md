@@ -1,143 +1,113 @@
-# 🩺 VitalSync — Smart Sieve Clinical Engine
+<p align="center"><img src="frontend/src/assets/vitalsync-logo.png" width="45" /> VitalSync — Smart Sieve Clinical Engine</p>
+An advanced Health-Tech ecosystem integrating real-time biometric telemetry with an intelligent clinical artifact analysis engine.
 
-> A high-performance clinical monitoring system featuring real-time patient telemetry and an intelligent "Smart Sieve" document analysis engine. Built for high-acuity medical environments.
+📑 Project Overview
+VitalSync is a production-grade clinical monitoring solution designed for high-acuity medical environments. It addresses the critical need for synchronizing live patient vitals with static diagnostic documentation. The platform utilizes a specialized Smart Sieve Engine that provides automated triage suggestions and metadata verification for medical artifacts, specialized for Bioinformatics and Clinical Informatics workflows.
 
-![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.2.4-6DB33F?style=for-the-badge&logo=spring&logoColor=white)
-![React](https://img.shields.io/badge/React-2024-61DAFB?style=for-the-badge&logo=react&logoColor=black)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-316192?style=for-the-badge&logo=postgresql&logoColor=white)
-![Java](https://img.shields.io/badge/Java-17-ED8B00?style=for-the-badge&logo=java&logoColor=white)
-![Tailwind](https://img.shields.io/badge/Tailwind_CSS-3.0-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
-![Lucide](https://img.shields.io/badge/Lucide_Icons-Latest-FF4B4B?style=for-the-badge)
+Component,Layer,Core Responsibilities
+React Frontend,Client Layer,"Real-time Dashboard, Clinical Vault UI, Telemetry Visualization (Recharts), and PDF Generation."
+REST API,Communication,High-throughput JSON and Multipart/FormData data exchange protocols.
+Spring Boot Backend,Logic Layer,"Asynchronous Simulation Engine, Heuristic Smart Sieve Logic, and LOB Streaming Service."
+Vital Simulator,Service Layer,Multi-threaded background process generating stochastic clinical parameters every 2.5 seconds.
+PostgreSQL,Data Layer,Relational storage for Patient profiles and Binary Large Object (BLOB) storage for medical records.
 
----
+🌟 Technical Deep Dive
 
-## 📖 Overview
+1. The Smart Sieve Engine (Heuristic Analysis)
+   The core innovation of this project is the analysis engine. Instead of standard file storage, VitalSync implements a logic layer that parses artifacts:
 
-**VitalSync** is a specialized Health-Tech platform designed to bridge the gap between live patient vitals and static medical documentation. The core innovation, the **Smart Sieve Engine**, automatically categorizes and analyzes uploaded clinical artifacts (PDFs) to provide instant diagnostic context, while the background simulation engine maintains a high-frequency stream of patient telemetry.
+Diagnostic Parsing: If an artifact is identified as a "Report" (e.g., Blood Report), the engine simulates a scan for clinical markers (Hemoglobin, Glucose) and verifies range compliance.
 
----
+Metadata Synchronization: Every upload is automatically mapped to a unique Patient UUID, ensuring 100% data integrity in the Clinical Vault.
 
-## 🏗️ Architecture
+Security: Implements transactional consistency during the streaming of Large Objects (LOB) from PostgreSQL to the client.
 
-┌─────────────────────────────────────────────────────────┐
-│ REACT FRONTEND (Port: 5173) │
-│ │
-│ • Real-time Vital Dashboard (Recharts integration) │
-│ • Clinical Vault UI (Dynamic Artifact Cards) │
-│ • Smart Analysis Modal (JSON Findings View) │
-│ • Professional PDF Export (jsPDF Engine) │
-└──────────────────────┬──────────────────────────────────┘
-│ REST API Call (Multipart/JSON)
-▼
-┌─────────────────────────────────────────────────────────┐
-│ SPRING BOOT BACKEND (Port: 8080) │
-│ │
-│ • Simulation Engine (Asynchronous Threading) │
-│ • Smart Sieve Analysis Logic (Heuristic Parsing) │
-│ • Binary Data Streaming (PostgreSQL LOB handles) │
-│ • Transactional File Delivery Service │
-└──────────┬───────────────────────┬──────────────────────┘
-│ │
-▼ ▼
-┌──────────────────┐ ┌──────────────────────┐
-│ VITAL SIMULATOR │ │ POSTGRESQL DATABASE │
-│ (Background) │ │ │
-│ │ │ • Patients Table │
-│ Updates HR/O2 │ │ (Vitals, Profile) │
-│ every 2.5s │ │ │
-│ triggers alerts │ │ • Medical_Records │
-└──────────────────┘ │ (Binary BLOB Data)│
-└──────────────────────┘
+2. High-Frequency Telemetry Simulation
+   The system features a dedicated SimulationService that mimics a live hospital monitor:
 
----
+Heart Rate (HR): Stochastic generation between 60.0 and 110.0 BPM.
 
-## 🌟 Features
+Oxygen Saturation (SpO2): Simulated between 85.0% and 100.0%.
 
-### 🧠 Smart Sieve Engine
+Real-time Triage: Visual state transitions to CRITICAL (Red) when HR > 100 or SpO2 < 95, allowing for immediate clinical intervention.
 
-- **Automated Artifact Categorization:** Dynamically distinguishes between administrative (Resumes) and clinical (Blood Reports) documents.
-- **Intelligent Findings:** Generates a summary of clinical findings and metadata verification for every uploaded artifact.
-- **Transactional Vault:** Securely stores medical records as **Large Objects (LOB)** in PostgreSQL with transactional integrity.
+Method,Endpoint,Description,Payload Example
+GET,/api/patients,Fetch all patients + real-time vitals,[]
+POST,/api/patients,Register a new clinical profile,"{ ""name"": ""Ankit"", ""age"": 21 }"
+DELETE,/api/patients/{id},Purge patient data & vault records,N/A
 
-### 📈 Real-time Monitoring
+Method,Endpoint,Description,Response Type
+POST,/api/patients/{id}/upload,Upload PDF artifact to patient vault,String (Success)
+GET,/api/patients/{id}/records,Fetch all artifact metadata,List<MedicalRecord>
+GET,/api/patients/record/{id},Stream binary PDF for secure preview,Application/PDF
+GET,/api/patients/record/{id}/analysis,Execute Smart Sieve Analysis,JSON (Findings)
 
-- **Integrated Telemetry:** Interactive line charts for Heart Rate (BPM) and Oxygen Saturation (SpO2) using `Recharts`.
-- **Automated Triage System:** Instant visual "CRITICAL" (Red) and "STABLE" (Green) status updates based on real-time vitals crossing clinical thresholds.
-- **High-Frequency Synchronization:** Backend-to-Frontend sync every 2500ms for accurate telemetry.
+Domain,Technology,Implementation Detail
+Backend,Spring Boot 3.2.4,"RESTful Services, JPA, and Async Task Execution."
+Frontend,React.js 18,Hooks-based state management with Tailwind CSS styling.
+Database,PostgreSQL 15,Relational mapping with OID-based LOB storage.
+Monitoring,Recharts,Dynamic line charts for temporal data visualization.
+Reporting,jsPDF / AutoTable,Client-side generation of authenticated clinical reports.
+Icons,Lucide React,High-fidelity medical and system iconography.
 
-### 📄 Clinical Reporting
-
-- **Export Case Summary:** One-click generation of professional PDF reports with digitally verified biometric profiles.
-- **Secure Preview:** Built-in PDF viewer for original document verification directly from the analysis modal.
-
----
-
-## 🛠️ Tech Stack
-
-| Layer                | Technology             | Purpose                          |
-| -------------------- | ---------------------- | -------------------------------- |
-| **Frontend**         | React.js 18            | Reactive UI & Dashboard State    |
-| **Backend**          | Spring Boot 3.2.4      | API, Simulator & Business Logic  |
-| **Database**         | PostgreSQL 15          | Relational & Binary Data Storage |
-| **Visualization**    | Recharts               | Telemetry Data Plotting          |
-| **Styling**          | Tailwind CSS           | Modern Biomedical Dark UI        |
-| **PDF Generation**   | jsPDF / AutoTable      | Professional Report Export       |
-| **State Management** | React Hooks (UseState) | Real-time Data Handling          |
-
----
-
-## 📂 Project Structure
-
+📂 Project Structure & Module Breakdown
+Plaintext
 VitalSync/
-├── frontend/ # React Vite Application
+├── frontend/ # React Application Root
 │ ├── src/
 │ │ ├── pages/
-│ │ │ ├── Dashboard.jsx # Patient Registry & Triage List
-│ │ │ └── PatientDetail.jsx # Telemetry & Smart Vault
-│ │ └── components/ # Custom UI Widgets
+│ │ │ ├── Dashboard.jsx # Patient Registry & Global Triage View
+│ │ │ └── PatientDetail.jsx # Real-time Monitor & Smart Vault Integration
+│ │ ├── components/ # Reusable UI widgets (Vitals, Modals, Cards)
+│ │ └── utils/ # API configurations and helper functions
 │
-└── backend/ # Maven Spring Boot Application
+└── backend/ # Spring Boot Application Root
 └── src/main/java/com/ankit/vitalsync/
-├── model/ # JPA Entities (Patient, MedicalRecord)
-├── repository/ # Data Access Layer (PostgreSQL)
-├── controller/ # Smart Sieve & Artifact Endpoints
-└── VitalsyncApplication.java # Core Application Boot
+├── model/ # JPA Entities (Patient.java, MedicalRecord.java)
+├── repository/ # Persistence Layer (Spring Data JPA)
+├── controller/ # REST Layer (PatientController.java)
+└── VitalsyncApplication # Core entry point with CORS configuration
 
----
+⚙️ Installation and Environment Setup
 
-## 🚀 Getting Started
+1. Database Initialization
+   Ensure PostgreSQL is active. Create a database named vitalsync:
 
-### 1. Database Configuration
-
-Ensure PostgreSQL is running and create the database:
-
-```sql
+SQL
 CREATE DATABASE vitalsync;
-Update application.properties:
+
+2. Configure Backend
+   Navigate to src/main/resources/application.properties and configure:
 
 Properties
 spring.datasource.url=jdbc:postgresql://localhost:5432/vitalsync
-spring.datasource.username=YOUR_USERNAME
-spring.datasource.password=YOUR_PASSWORD
+spring.datasource.username=your_db_user
+spring.datasource.password=your_db_password
 spring.jpa.hibernate.ddl-auto=update
-2. Run Backend (Spring Boot)
+
+3. Build & Execution
+   Terminal 1 (Backend):
+
 Bash
 cd backend
 ./mvnw clean spring-boot:run
-3. Run Frontend (React)
+Terminal 2 (Frontend):
+
 Bash
 cd frontend
 npm install
 npm run dev
-🎓 Specialized Context (Bioinformatics)
-Developed as a capstone project with a focus on Specialized Clinical Informatics. The Smart Sieve engine serves as a foundation for future integration with OCR (Optical Character Recognition) libraries like Apache Tika and ML-based diagnostic models for automated report interpretation.
 
-👤 Author
-Ankit Kumar — VIT Vellore
+🎓 Academic Context (Bioinformatics)
+This project serves as a practical implementation of Clinical Decision Support Systems (CDSS). Developed with a focus on Bioinformatics, the Smart Sieve engine provides a modular framework for future integration with Natural Language Processing (NLP) for automated extraction of medical parameters from unstructured PDF artifacts.
 
-Specialization: B.Tech CSE (Bioinformatics)
+👤 Developer Profile
+Ankit Kumar — Vellore Institute of Technology
 
-GitHub: @kumarankit9431780451-design
+Degree: B.Tech Computer Science (Specialization: Bioinformatics)
 
-Developed with ❤️ using Java, React, and PostgreSQL.
-```
+Interests: Full-Stack Development, Health-Tech, Machine Learning.
+
+GitHub: kumarankit9431780451-design
+
+Disclaimer: This is a simulated clinical platform for academic purposes.

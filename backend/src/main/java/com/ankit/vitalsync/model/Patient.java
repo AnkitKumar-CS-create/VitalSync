@@ -3,7 +3,9 @@ package com.ankit.vitalsync.model;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDateTime;
+import java.util.List;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Data
@@ -19,7 +21,18 @@ public class Patient {
     private double lastHeartRate;
     private double lastOxygenLevel;
 
-    // Sirf ek baar declare karo aur format attach kar do
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime lastUpdate;
+
+    // 🔥 YE ADD KARNA ZAROORI HAI: Relationship with MedicalRecord
+    @OneToMany(mappedBy = "patient", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore // Taaki JSON infinite loop mein na fanse
+    private List<MedicalRecord> records;
+
+    // PrePersist taaki naya patient bante waqt time automatic set ho jaye
+    @PrePersist
+    @PreUpdate
+    protected void onUpdate() {
+        lastUpdate = LocalDateTime.now();
+    }
 }

@@ -126,6 +126,6 @@ Ankit Kumar — Vellore Institute of Technology
 
 Specialization: B.Tech Computer Science (Bioinformatics)
 
-GitHub: AnkitKumar-CS-Create
+GitHub: [AnkitKumar-CS-Create](https://github.com/AnkitKumar-CS-Create)
 
 > Developed for academic purposes to demonstrate Clinical Decision Support Systems (CDSS).
